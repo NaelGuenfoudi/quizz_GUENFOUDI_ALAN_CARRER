@@ -1,50 +1,46 @@
-import turtle
 import random
+import time
+import os
+import emoji
 
-# Configuration de la fenêtre
-screen = turtle.Screen()
-screen.title("Animation de confettis")
-screen.bgcolor("white")
-screen.setup(width=800, height=600)
-screen.tracer(0)
+# Fonction pour effacer l'écran (compatible avec Windows et Unix)
+def clear_screen():
+    os.system('cls' if os.name == 'nt' else 'clear')
 
 # Création d'une classe pour les confettis
-class Confetti(turtle.Turtle):
+class Confetti:
     def __init__(self):
-        super().__init__()
-        self.shape("circle")
-        self.color(random.choice(["red", "orange", "yellow", "green", "blue", "purple"]))
-        self.penup()
-        self.speed(0)
-        self.turtlesize(stretch_wid=0.2, stretch_len=0.2)
-        self.goto(random.randint(-400, 400), random.randint(-300, 300))
-        self.setheading(random.randint(0, 359))
-        self.gravity = 0.1
+        self.x = random.randint(0, 79)
+        self.y = random.randint(0, 23)
+        self.color = random.choice(["\U0001F389"])
 
     def move(self):
-        self.sety(self.ycor() - self.gravity)
-        self.gravity += 0.1
+        self.y += 1
 
 # Liste de confettis
 confettis = []
 
-# Génération des confettis
-for _ in range(100):
+# Génération des confettis (augmenter le nombre pour plus de confettis)
+for _ in range(200):  # Augmentez le nombre ici (par exemple, 200)
     confetti = Confetti()
     confettis.append(confetti)
 
 # Boucle principale de l'animation
 while True:
-    screen.update()
+    clear_screen()
 
-    # Animation des confettis
+    # Créer une grille de 80x24 pour afficher les confettis
+    grid = [[' ' for _ in range(100)] for _ in range(24)]
+
+    # Mettre à jour la position des confettis
     for confetti in confettis:
         confetti.move()
+        if confetti.y < 24:
+            grid[confetti.y][confetti.x] = confetti.color
 
-        # Vérifier si le confetti touche le sol
-        if confetti.ycor() <= -300:
-            confetti.sety(-300)
-            confetti.gravity = 0
+    # Afficher la grille
+    for row in grid:
+        print(''.join(row))
 
-turtle.done()
-
+    # Attendre un court moment avant de mettre à jour l'affichage
+    time.sleep(0.1)

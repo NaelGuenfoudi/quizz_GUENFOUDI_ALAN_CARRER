@@ -1,4 +1,10 @@
 from tabulate import tabulate
+import emoji
+
+print(emoji.emojize(":thumbs_up:"))
+print("\U0001F44D")
+
+
 
 # Fonction pour afficher le menu
 def afficher_menu():
