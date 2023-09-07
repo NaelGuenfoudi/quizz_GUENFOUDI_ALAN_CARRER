@@ -1,18 +1,17 @@
 from tabulate import tabulate
 import emoji
-
-print(emoji.emojize(":thumbs_up:"))
-print("\U0001F44D")
+import theme as t
 
 
 
 # Fonction pour afficher le menu
 def afficher_menu():
-    print(tabulate([["----- Interface Simple -----\n1. Option 1\n2. Option 2\n3. Option 3\n4. Quitter"]], tablefmt='grid'))
+    print(tabulate([["----- Interface Simple -----\n1. Choix du theme \n2. Option 2\n3. Option 3\n4. Quitter"]], tablefmt='grid'))
 
 # Fonctions pour les différentes options du menu
 def option1():
-    print("Vous avez choisi l'option 1")
+    print("Vous avez choisi de changer de theme")
+    t.afficher_theme()
 
 def option2():
     print("Vous avez choisi l'option 2")
@@ -27,10 +26,13 @@ while True:
 
     if choix == "1":
         option1()
+        break
     elif choix == "2":
         option2()
+        break
     elif choix == "3":
         option3()
+        break
     elif choix == "4":
         break
     else:
