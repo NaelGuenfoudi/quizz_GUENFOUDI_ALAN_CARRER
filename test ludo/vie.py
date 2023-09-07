@@ -13,5 +13,8 @@ def afficher_vies(nb_vies):
 
     print()
 
+    if nb_vies < 0:
+        print("You lose")
+
 # Utilisation de la fonction pour afficher 3 vies
 afficher_vies(3)
