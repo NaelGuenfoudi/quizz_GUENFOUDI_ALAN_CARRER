@@ -2,7 +2,7 @@ import mysql.connector
 from mysql.connector import Error
 from configparser import ConfigParser
 
-def read_db_config(filename='src/db/conf.ini', section='MySQL'):
+def read_db_config(filename='conf.ini', section='MySQL'):
         parser = ConfigParser()
         parser.read(filename)
         
@@ -49,7 +49,6 @@ def select_query(query, params=None):
     finally:
         if conn.is_connected():
             conn.close()
-            print('close')
 
 
 def getAllPlayersData():
@@ -61,6 +60,9 @@ def getAllPlayersData():
     """
     players_data = select_query('select * from joueur')
     return players_data
+
+def getTextQuestionId(idQuestion):
+    return select_query(f'select Texte from question where ID_Question={idQuestion}')[0][0]
 
 def getAllQuestionData():
     """
@@ -82,7 +84,7 @@ def getGoodResponseForQuestion(idQuestion):
     Retour:
         list: Liste contenant le tuple de la bonne réponse.
     """
-    return select_query(f"select ID_Reponse from Reponse where Est_Correcte=true and ID_Question={idQuestion}")
+    return select_query(f"select ID_Reponse from Reponse where Est_Correcte=true and ID_Question={idQuestion}")[0][0]
 
 def getAllTheme():
     """
@@ -116,10 +118,15 @@ def getQuestionsOfThemeAndLevel(idTheme, idLevel):
     query = f'select ID_Question, Texte from Question where ID_Theme={idTheme} and ID_Level={idLevel}'    
     return select_query(query)
 
+def getReponsesForQuestion(idQuestion):
+    query =f'select ID_Reponse,Texte from Reponse where ID_Question={idQuestion}'
+    return select_query(query)
+    
 
 def main():
     print(select_query('select * from Question where ID_Question=3'))
-
+    reponses=getReponsesForQuestion(3)
+    print(reponses[0][0])
 main()
 
 
