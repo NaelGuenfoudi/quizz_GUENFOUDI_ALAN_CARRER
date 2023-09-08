@@ -53,3 +53,44 @@ CREATE TABLE Score (
     PRIMARY KEY (ID_Joueur, Date_Score),
     FOREIGN KEY (ID_Joueur) REFERENCES Joueur(ID_Joueur)
 );
+
+---------------------------------------------------------------
+
+CREATE TABLE `users` (
+  `id` int(11) NOT NULL,
+  `username` text NOT NULL,
+  `password` text NOT NULL,
+  `last_played` date DEFAULT NULL,
+  `game_played` int(11) DEFAULT NULL,
+  `admin` tinyint(1) NOT NULL,
+  `best_scores` int(11) DEFAULT NULL,
+  `registered_at` date NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `users`
+--
+
+INSERT INTO `users` (`id`, `username`, `password`, `last_played`, `game_played`, `admin`, `best_scores`, `registered_at`) VALUES
+(1, 'Alan', '$2b$12$Y24AzBPBY8gHYp/vAIAQWOn65S5I3XNzrI3qeOTQ4JRef/JmdYwvu', NULL, NULL, 1, NULL, '2023-09-06');
+
+--
+-- Indexes for dumped tables
+--
+
+--
+-- Indexes for table `users`
+--
+ALTER TABLE `users`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- AUTO_INCREMENT for dumped tables
+--
+
+--
+-- AUTO_INCREMENT for table `users`
+--
+ALTER TABLE `users`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+COMMIT;
