@@ -121,7 +121,45 @@ def getQuestionsOfThemeAndLevel(idTheme, idLevel):
 def getReponsesForQuestion(idQuestion):
     query =f'select ID_Reponse,Texte from Reponse where ID_Question={idQuestion}'
     return select_query(query)
-    
+
+def get_password_from_username(username):
+    """
+    Récupère le mot de passe d'un utilisateur depuis la base de données.
+
+    Args:
+        username (str): Nom d'utilisateur.
+
+    Returns:
+        str: Mot de passe associé ou None si non trouvé.
+    """
+    query = f"SELECT password FROM user WHERE username='{username}'"
+    return select_query(query)
+
+def is_admin(username):
+    query=f'select admin from user where username=username'
+def is_user(username):
+    """
+    Vérifie si un utilisateur existe dans la base de données.
+
+    Args:
+        username (str): Nom d'utilisateur.
+
+    Returns:
+        bool: True si l'utilisateur existe, False sinon.
+    """
+    query = f"SELECT username FROM user WHERE username='{username}'"
+    result = select_query(query)
+    return True if result else False
+
+def get_all_usernames():
+    """
+    Récupère tous les noms d'utilisateurs de la base de données.
+
+    Returns:
+        list: Liste des noms d'utilisateurs.
+    """
+    query = "SELECT username FROM user"
+    return select_query(query)
 
 def main():
     print(select_query('select * from Question where ID_Question=3'))
