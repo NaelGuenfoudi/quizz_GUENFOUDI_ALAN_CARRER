@@ -1,5 +1,6 @@
 import time
 import sys
+import TEQ as lose
 
 # Liste d'emojis d'horloge
 clock_emojis = ["🕛", "🕐", "🕑", "🕒", "🕓", "🕔", "🕕", "🕖", "🕗", "🕘", "🕙", "🕚", "🕛"]
@@ -26,7 +27,10 @@ def update_progress_bar(duration):
 
     sys.stdout.write('\r')
     sys.stdout.write('\r🕛 Progress: [████████████████████████████████████████████████████████████] 100% 🕛\r')  # Affiche la progression complète à la fin
-
+    lose.clear_terminal()
+    lose.perdu()
 # Utilisation
 # Appel de la fonction update_progress_bar avec la durée maximale en secondes (par exemple : 180 pour 3 minutes)
 update_progress_bar(15)
+
+
