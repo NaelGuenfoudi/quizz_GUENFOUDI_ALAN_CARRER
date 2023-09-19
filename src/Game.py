@@ -11,12 +11,14 @@ from ctypes import c_char_p
 
 class Game:
 
-    TOTAL_TIME=60
-    QUESTION_TIME=10
-    TOTAL_QUESTION=60
+    TOTAL_TIME= 60
+    QUESTION_TIME= 10
+    TOTAL_QUESTION= 5
     def __init__(self, ):
        
-        
+        self.theme = 1
+        self.score = 0
+        self.questions = []
         self.current_reponse = 0
         self.current_question_number = 0
         self.game_over = False
@@ -27,16 +29,12 @@ class Game:
 
     
 
-    def time_global_is_up(self):
-        print("\nTemps global écoulé!")
-        self.game_over = True
+   
 
     def next_question(self):
-        if not self.game_over and self.current_question_number < Game.TOTAL_QUESTION:
             self.current_question_number += 1
             self.ask_question()
-        else:
-            print("Fin du jeu!")
+        
 
     def afficherReponses(self, reponses):
         for i, reponse in enumerate(reponses):
@@ -81,64 +79,85 @@ class Game:
                 
 
     def ask_question(self):
-        questionCurrent = getTextQuestionId(self.current_question_number)
-        print(f"\nQuestion {self.current_question_number}: "+questionCurrent)
-        # le but est de recuperer toutes les reponses de la question et de les afficher, mais je ne sais pas comment on gere ,aide moi gpt
-        
-        reponses = getReponsesForQuestion(self.current_question_number)
+        if len(self.questions)> self.current_question_number or len(self.questions)== self.current_question_number:
+            questionCurrent = self.questions[self.current_question_number-1]
+            print(f"\nQuestion {self.current_question_number}: "+questionCurrent[1])
+            # le but est de recuperer toutes les reponses de la question et de les afficher, mais je ne sais pas comment on gere ,aide moi gpt
+            
+            reponses = getReponsesForQuestion(questionCurrent[0])
 
-        self.afficherReponses(reponses)
+            self.afficherReponses(reponses)
 
-        hasAnwser = Event()
+            hasAnwser = Event()
 
-        fn = sys.stdin.fileno()
+            fn = sys.stdin.fileno()
 
-            # Création d'une variable partageable entre les process
-        res = Manager().Value(c_char_p, "")
+                # Création d'une variable partageable entre les process
+            res = Manager().Value(c_char_p, "")
 
-            # Création du process
-        processInput = Process(target=Game.input_question, args=[fn, hasAnwser, res])
+                # Création du process
+            processInput = Process(target=Game.input_question, args=[fn, hasAnwser, res])
 
-            # Définition du nombre de secondes à attendre
-        timeout=Game.QUESTION_TIME
+                # Définition du nombre de secondes à attendre
+            timeout=Game.QUESTION_TIME
 
-            # Lancement du process
-        processInput.start()
+                # Lancement du process
+            processInput.start()
 
-            # Attente d'une réponse en fonction du temps défini sur timeout
-        hasAnwser.wait(timeout)
+                # Attente d'une réponse en fonction du temps défini sur timeout
+            hasAnwser.wait(timeout)
 
-            # Destruction du process
-        processInput.terminate()
+                # Destruction du process
+            processInput.terminate()
 
-            # Si aucune valeur n'est entrée, cela signifie que le temps est écoulé
-        print(f'Value de la réponse:{res.value}')    
-        if (res.value == ''):
-            print('\nTemps écoulé !') 
-        else :
-            reponse=int(res.value)-1
-            text_reponse=reponses[reponse][1]
-            if Game.isGoodReponse(text_reponse,self.current_question_number):
-                print('ca gagne fort')
-            else:
-                print('trompé de réponse gros béta')
-        return res.value
+                # Si aucune valeur n'est entrée, cela signifie que le temps est écoulé
+            print(f'Value de la réponse:{res.value}')    
+            if (res.value == ''):
+                print('\nTemps écoulé !') 
+            else :
+                reponse=int(res.value)-1
+                text_reponse=reponses[reponse][1]
+                if Game.isGoodReponse(text_reponse,questionCurrent[0]):
+                    self.score+=1
+                    
+                    
+            return res.value
+        else:
+            
+            self.isFinish.set()
 
 
-    
-
-    
-  
     def global_timer(isFinish):
         time.sleep(Game.TOTAL_TIME)  
         if not isFinish.is_set():
             print("\nLe timer global est écoulé !")
             isFinish.set()
-            os._exit(0) 
+        os._exit(0)     
+            
 
+    def get_theme_input():
+        themes = getAllTheme()
+        print('\nVoici les différents thèmes disponibles:')
+        
+        for theme in themes:
+            print(f'{theme[0]}: {theme[1]}')
+        
+        idTheme = -1  # Initialisation à une valeur non valide
+        while idTheme not in [theme[0] for theme in themes] and idTheme != 0:
+            try:
+                idTheme = int(input('\nChoisissez le thème avec lequel vous voulez jouer. Si vous voulez de tout, envoyez 0: '))
+            except ValueError:
+                print("Veuillez entrer un nombre valide.")
+        
+        return idTheme
     
+    def set_questions_for_theme(self,id_theme):
+        self.theme=id_theme
+        self.questions=getQuestionsOfTheme(id_theme,Game.TOTAL_QUESTION)
 
     def main(self):
+        id_theme=Game.get_theme_input()
+        self.set_questions_for_theme(id_theme)
         isFinish = Event()
         self.isFinish=isFinish
 
@@ -152,7 +171,10 @@ class Game:
         # Tant que le timer global n'est pas terminé
         while not isFinish.is_set():
             # Poser la première question
-            self.next_question()        
+            self.next_question()     
+
+        score=5
+        print(f'Merci d avoir joué , tu as eu {self.score} bonnes réponses, bravo')   
            
             
 
