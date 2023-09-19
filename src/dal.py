@@ -171,19 +171,42 @@ def getAllLevel():
     """
     return [(1, "Niveau facile"), (2, "Niveau dur"), (3, "Niveau expert")]
 
-def getQuestionsOfThemeAndLevel(idTheme, idLevel):
+def getQuestionsOfTheme(idTheme, nbQuestion):
     """
-    Récupère les questions selon un thème et un niveau donnés.
+    Récupère un nombre de question donné en fonction du thème,si l'id du thème est 0, le jeu sera générique.
 
     Args:
         idTheme (int): L'identifiant du thème.
-        idLevel (int): L'identifiant du niveau.
+        nbQuestion (int): Nombre de questions à récupérer.
 
     Retour:
         list: Liste de tuples contenant l'ID et le texte des questions.
     """
-    query = f'select ID_Question, Texte from Question where ID_Theme={idTheme} and ID_Level={idLevel}'    
+    if(idTheme!=0):
+        query = f'select ID_Question, Texte from Question where ID_Theme={idTheme} ORDER BY RAND() limit {nbQuestion}'    
+    else:
+        query = f'select ID_Question, Texte from Question  ORDER BY RAND() limit {nbQuestion}'  
+    
     return select_query(query)
+
+def get_id_question_for_text(text_question):
+    """
+    Récupère l'ID de la question basé sur le texte de la question.
+
+    Args:
+        text_question (str): Le texte de la question.
+
+    Retour:
+        int: L'ID de la question, ou None si la question n'est pas trouvée.
+    """
+    query = f"SELECT ID_Question FROM Question WHERE Texte = '{text_question}'"
+    results = select_query(query)
+    
+    if results:
+        return results[0][0]  # Retourne le premier ID trouvé
+    else:
+        return None
+
 
 def getReponsesForQuestion(idQuestion):
     query =f'select ID_Reponse,Texte from Reponse where ID_Question={idQuestion}'
@@ -336,9 +359,6 @@ def get_id_reponse_for_text(text_response):
     if result:
         return result[0][0]  # Retourne le premier élément du premier tuple.
     return None
-
-
-
 
 
 
