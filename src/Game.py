@@ -26,6 +26,7 @@ class Game:
         self.current_timer_question = None
         self.current_timer_global = None
         isFinish=None
+        self.score_max=0
 
     
 
@@ -33,7 +34,7 @@ class Game:
 
     def next_question(self):
             self.current_question_number += 1
-            self.ask_question()
+            self.pose_question_and_wait_for_answer()
         
 
     def afficherReponses(self, reponses):
@@ -78,53 +79,45 @@ class Game:
 
                 
 
-    def ask_question(self):
-        if len(self.questions)> self.current_question_number or len(self.questions)== self.current_question_number:
-            questionCurrent = self.questions[self.current_question_number-1]
-            print(f"\nQuestion {self.current_question_number}: "+questionCurrent[1])
-            # le but est de recuperer toutes les reponses de la question et de les afficher, mais je ne sais pas comment on gere ,aide moi gpt
-            
-            reponses = getReponsesForQuestion(questionCurrent[0])
-
-            self.afficherReponses(reponses)
-
-            hasAnwser = Event()
-
-            fn = sys.stdin.fileno()
-
-                # Création d'une variable partageable entre les process
-            res = Manager().Value(c_char_p, "")
-
-                # Création du process
-            processInput = Process(target=Game.input_question, args=[fn, hasAnwser, res])
-
-                # Définition du nombre de secondes à attendre
-            timeout=Game.QUESTION_TIME
-
-                # Lancement du process
-            processInput.start()
-
-                # Attente d'une réponse en fonction du temps défini sur timeout
-            hasAnwser.wait(timeout)
-
-                # Destruction du process
-            processInput.terminate()
-
-                # Si aucune valeur n'est entrée, cela signifie que le temps est écoulé
-            print(f'Value de la réponse:{res.value}')    
-            if (res.value == ''):
-                print('\nTemps écoulé !') 
-            else :
-                reponse=int(res.value)-1
-                text_reponse=reponses[reponse][1]
-                if Game.isGoodReponse(text_reponse,questionCurrent[0]):
-                    self.score+=1
+    def pose_question_and_wait_for_answer(self):
+            if self.current_question_number <= len(self.questions):
+                current_question = self.questions[self.current_question_number-1]
+                self.display_question_and_options(current_question)
+                
+                user_answer = self.get_user_answer_with_timeout()
+                
+                if user_answer:
+                    self.process_answer(user_answer, current_question)
+                else:
+                    print('\nTemps écoulé !')
                     
-                    
-            return res.value
-        else:
-            
-            self.isFinish.set()
+                return user_answer
+            else:
+                self.isFinish.set()
+
+    def display_question_and_options(self, question):
+        print(f"\nQuestion {self.current_question_number}: {question[1]}")
+        responses = getReponsesForQuestion(question[0])
+        self.afficherReponses(responses)
+
+    def get_user_answer_with_timeout(self):
+        hasAnswer = Event()
+        fn = sys.stdin.fileno()
+        shared_value = Manager().Value(c_char_p, "")
+        process_input = Process(target=Game.input_question, args=[fn, hasAnswer, shared_value])
+        timeout = Game.QUESTION_TIME
+        process_input.start()
+        hasAnswer.wait(timeout)
+        process_input.terminate()
+        return shared_value.value
+
+    def process_answer(self, user_answer, current_question):
+        response_index = int(user_answer) - 1
+        text_response = getReponsesForQuestion(current_question[0])[response_index][1]
+        if Game.isGoodReponse(text_response, current_question[0]):
+            self.score += get_point_question(current_question[0])
+        self.score_max+=get_point_question(current_question[0])
+
 
 
     def global_timer(isFinish):
@@ -173,8 +166,7 @@ class Game:
             # Poser la première question
             self.next_question()     
 
-        score=5
-        print(f'Merci d avoir joué , tu as eu {self.score} bonnes réponses, bravo')   
+        print(f'Merci d avoir joué , tu as eu un score de {self.score}/{self.score_max}')   
            
             
 
