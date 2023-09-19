@@ -1,21 +1,15 @@
 #!/usr/bin/python3
 
 import os
+from dal import *
 import random
 import maskpass
 import time
 import string
 import mysql.connector
-import bcrypt
+import bcrypt   
+from quizz import *
 
-conn = mysql.connector.connect(
-    host="localhost",
-    user="root",
-    password="",
-    database="quiz"
-)
-
-cur = conn.cursor()
 
 players = {}
 
@@ -37,10 +31,7 @@ def clear_screen():
 
 def login(username):
     try:
-        cur.execute("SELECT password FROM users WHERE username = %s", (username,))#besoin d'une methode qui retourne le password d'un user depuis son username getPasswordFromUsername
-        result = cur.fetchone()
-        if result:
-            password_from_db = result[0]
+        password_from_db=get_password_from_username(username)
     except Error as e:
         print(f"Une erreur est survenue: {e}")
 
@@ -62,10 +53,8 @@ def login(username):
 
 def admin(username):
     try:
-        cur.execute("SELECT password FROM users WHERE username = %s", (username,))#pareil , getPasswordFromUsername
-        result = cur.fetchone()
-        if result:
-            password_from_db = result[0]
+        
+            password_from_db = get_password_from_username(username)
     except Error as e:
         print(f"Une erreur est survenue: {e}")
 
@@ -77,13 +66,11 @@ def admin(username):
             print("\x1b[31mLe mot de passe ne peut pas dépasser 255 caractères.\x1b[0m")
         else:
             if bcrypt.checkpw(password.encode('utf-8'), password_from_db.encode('utf-8')):
-                cur.execute("SELECT admin FROM users WHERE username = %s", (username,))#besoin d'une methode isAdmin(username)
-                result = cur.fetchone()
-                if result[0] == 0:
+                if is_admin(username):
                     print("\x1b[31mL'utilisateur n'est pas administrateur.\x1b[0m")
                     time.sleep(2)
                     main()
-                elif result[0] == 1:
+                else:
                     print("\x1b[32mAuthentification réussi et rôle administrateur détécter.\x1b[0m")
                     time.sleep(2)
                     menu_administrateur_goodpass()
@@ -103,9 +90,9 @@ def quizzGame():
             print("\x1b[31mLa valeur ne peut pas être plus grande que 60\x1b[0m")
         else:
             try:
-                cur.execute("SELECT username FROM users WHERE username=%s", (username,))#methode isUser(username)
-                result = cur.fetchone()
-                if result:
+                
+                if is_user(username):
+                    print('if_is_user')
                     login(username)
                 else:
                     print("Création du compte.")
@@ -133,10 +120,7 @@ def quizzGame():
                         else:
                             break
 
-                    sel = bcrypt.gensalt()
-                    hashed = bcrypt.hashpw(password.encode('utf-8'), sel)
-                    cur.execute("INSERT INTO users(username, password, admin, registered_at) VALUES (%s, %s, 0, NOW())", (username, hashed,))#
-                    conn.commit()
+                    insert_user(username,password_validation,0)
                     break
             except Exception as e:
                 print(f"Une erreur s'est produite : {e}")
@@ -200,7 +184,7 @@ def start_game():
     print(center_text("Vous avez un délais de 5 seconde avant l'affichage de la première question", os_width))
     print(center_text("Vous pouvez quitter le quizz quand vous le souhaiter, mais votre action ne sera pas sans conséquence", os_width))
     print()
-    exit(0)
+    
 
 def multiplayer_start():
     global reponse
@@ -291,11 +275,7 @@ def menu_administrateur_goodpass():
         elif choix == "3":
             while True:
                 clear_screen()
-                cur.execute("SELECT username FROM users;")#get_all_usernames() 
-                result = cur.fetchall()
-                print("Liste des utilisateurs:\n")
-                for i in range(0, len(result)):
-                    print(f"- {i}. {result[i][0]}")
+                afficher_all_users()
                 print()
                 print("Pour quitter le programme, écriver `\x1b[32mexit\x1b[0m`")
                 print()
@@ -308,16 +288,14 @@ def menu_administrateur_goodpass():
                     menu_administrateur_goodpass()
                 else:
                     # Vérifiez d'abord si l'utilisateur existe dans la base de données
-                    cur.execute("SELECT username FROM users WHERE username = %s", (username,))#isUser(username)
-                    existing_user = cur.fetchone()
+                    existing_user = is_user(username)
 
                     if existing_user:
                         random_password = generate_random_password()
                         salt = bcrypt.gensalt()
                         hashed_password = bcrypt.hashpw(random_password.encode('utf-8'), salt)
                         try:
-                            cur.execute("UPDATE users SET password=%s WHERE username=%s", (hashed_password, username,))#update_password(username)
-                            conn.commit()
+                            update_password(username,hashed_password)
                             print("\x1b[32mLe mot de passe a été changé avec succès.\x1b[0m")
                             print(f"\x1b[1;33mVoici le nouveau mot de passe pour {username}: \x1b[0m{random_password}")
                             input("Appuyer sur [ENTREE] pour continuer")
@@ -331,11 +309,7 @@ def menu_administrateur_goodpass():
         elif choix == "4":
             while True:
                 clear_screen()
-                cur.execute("SELECT username FROM users;")#get_all_usernames()
-                result = cur.fetchall()
-                print("Liste des utilisateurs:\n")
-                for i in range(0, len(result)):
-                    print(f"- {i}. {result[i][0]}")
+                afficher_all_users()
                 print()
                 print("Pour quitter le programme, écriver `\x1b[32mexit\x1b[0m`")
                 print()
@@ -348,8 +322,8 @@ def menu_administrateur_goodpass():
                     menu_administrateur_goodpass()
                 else:
                     # Vérifiez d'abord si l'utilisateur existe dans la base de données
-                    cur.execute("SELECT username FROM users WHERE username = %s", (user,)) #isUser(username)
-                    existing_user = cur.fetchone()
+                    
+                    existing_user = is_user(username)
 
                     if existing_user:
                         while True:
@@ -360,8 +334,7 @@ def menu_administrateur_goodpass():
                                 print("Veuillez répondre par \"oui\" ou \"non\"")
                             elif sure.lower() == "oui":
                                 try:
-                                    cur.execute("DELETE FROM users WHERE username = %s", (user,))#delete_user(username)
-                                    conn.commit()  # Assurez-vous d'appeler commit()
+                                    delete_user(username)
                                     print(f"L'utilisateur {user} a été supprimé avec succès.")
                                 except mysql.connector.Error as e:
                                     print(f"Une erreur s'est produite lors de la suppression de l'utilisateur : {e}")
@@ -380,11 +353,7 @@ def menu_administrateur_goodpass():
         elif choix == "5":
             while True:
                 clear_screen()
-                cur.execute("SELECT username FROM users;")#get_all_usernames()
-                result = cur.fetchall()
-                print("Liste des utilisateurs:\n")
-                for i in range(0, len(result)):
-                    print(f"- {i}. {result[i][0]}")
+                afficher_all_users()
                 print()
                 print("Pour quitter le programme, écriver `\x1b[32mexit\x1b[0m`")
                 print()
@@ -397,46 +366,57 @@ def menu_administrateur_goodpass():
                     menu_administrateur_goodpass()
                 else:
                     # Vérifiez d'abord si l'utilisateur existe dans la base de données
-                    cur.execute("SELECT username FROM users WHERE username = %s", (username,) )#isUser()
-                    existing_user = cur.fetchone()
+                    existing_user = is_user(username)
 
-                    if existing_user:
-                        clear_screen()
-                        print(f"Utilisateur: {username}\n")
-                        print("1. Ajouter les permissions administrateur")
-                        print("2. Supprimer les permissions administrateur")
-                        print()
-                        while True:
-                            perm = input("> ")
-                            if len(perm) < 1:
-                                print("\x1b[31mLa valeur ne peut pas être nulle.\x1b[0m")
-                            elif len(perm) > 2:
-                                print("\x1b[31mLa valeur ne peut pas être être supérieure à 2 caractères.\x1b[0m")
-                            elif perm == "1" or perm == "2":
-                                try:
-                                    # Mettez à jour les permissions administratives en fonction de l'entrée de l'utilisateur
-                                    admin_value = 1 if perm == "1" else 0
-                                    cur.execute("UPDATE users SET admin=%s WHERE username=%s", (admin_value, username,))#set_admin(),remove_admin()
-                                    conn.commit()
-                                    print(f"\x1b[32mLes permissions administratives de l'utilisateur {username} ont été mises à jour avec succès.\x1b[0m")
-                                    time.sleep(2)
-                                    menu_administrateur_goodpass()
-                                except mysql.connector.Error as e:
-                                    print(f"Une erreur s'est produite lors de la mise à jour des permissions administratives : {e}")
-                                menu_administrateur_goodpass()
-                            else:
-                                print("\x1b[31mErreur de saisie\x1b[0m")
-                        break  # Sortez de la boucle externe
-                    else:
-                        print(f"\x1b[31mL'utilisateur {username} n'existe pas dans la base de données.\x1b[0m")
+            if existing_user:
+                clear_screen()
+                print(f"Utilisateur: {username}\n")
+                print("1. Ajouter les permissions administrateur")
+                print("2. Supprimer les permissions administrateur")
+                print()
+
+                while True:
+                    perm = input("> ")
+
+                    if perm not in ["1", "2"]:
+                        print("\x1b[31mErreur de saisie. Veuillez choisir 1 ou 2.\x1b[0m")
+                        continue
+
+                    try:
+                        if perm == "1":
+                            set_admin(username)
+                            print(f"\x1b[32mLes permissions administratives de l'utilisateur {username} ont été accordées avec succès.\x1b[0m")
+                        else:
+                            remove_admin(username)
+                            print(f"\x1b[32mLes permissions administratives de l'utilisateur {username} ont été retirées avec succès.\x1b[0m")
+
                         time.sleep(2)
-            continue  # Revenez au début de la boucle if
+                        menu_administrateur_goodpass()
+
+                    except mysql.connector.Error as e:
+                        print(f"Une erreur s'est produite lors de la mise à jour des permissions administratives : {e}")
+                        menu_administrateur_goodpass()
+
+                    break  # Sortez de la boucle interne
+
+            else:
+                print(f"\x1b[31mL'utilisateur {username} n'existe pas dans la base de données.\x1b[0m")
+                time.sleep(2)
+
+                continue  # Revenez au début de la boucle if
         elif choix == "6":
-            main()
-            break
+                    main()
+                    break  
         else:
-            print(("\x1b[31mErreur de saisie\x1b[0m"))
-    
+                    print(("\x1b[31mErreur de saisie\x1b[0m"))
+            
+def afficher_all_users():
+                usernames=get_all_usernames()
+                print("Liste des utilisateurs:\n")
+                i=1
+                for username in usernames:
+                        print(f"- {i}. {username[0]}")
+                        i+=1   
 def menu_administrateur():
     clear_screen()
     while True:
@@ -448,8 +428,7 @@ def menu_administrateur():
             print("\x1b[31mLa valeur ne peut pas être plus grande que 60\x1b[0m")
         else:
             try:
-                cur.execute("SELECT username FROM users WHERE username=%s", (username,))#is_user(username)
-                result = cur.fetchone()
+                result=is_user(username)
                 if result:
                     admin(username)
                 else:
