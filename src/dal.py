@@ -2,7 +2,7 @@ import mysql.connector
 from mysql.connector import Error
 from configparser import ConfigParser
 
-def read_db_config(filename='conf.ini', section='MySQL'):
+def read_db_config(filename='src/db/conf.ini', section='MySQL'):
         parser = ConfigParser()
         parser.read(filename)
         
@@ -19,9 +19,9 @@ def read_db_config(filename='conf.ini', section='MySQL'):
   
 def create_connection():
         db_config = read_db_config()
+
         try:
             connection = mysql.connector.connect(**db_config) # Utilisation de ** pour envoyer les paramètres de connexion contenus dans db_confi
-            
             return connection
         except Error as e:
             print("Error connecting to MySQL:", e)
@@ -44,6 +44,73 @@ def select_query(query, params=None):
     except Exception as e:
         print(f"Error executing query: {e}")
         # In the case of an error, you might want to return None or raise the error, depending on your requirements.
+        return None
+
+    finally:
+        if conn.is_connected():
+            conn.close()
+
+def update_query(query, params=None):
+    """
+    Exécute une requête UPDATE dans la base de données.
+
+    Args:
+        query (str): La requête SQL à exécuter.
+        params (tuple, optional): Les paramètres pour la requête.
+
+    Returns:
+        int: Le nombre de lignes affectées par la requête.
+    """
+    conn = create_connection()
+    cursor = conn.cursor()
+    try:
+        params = params or ()
+        cursor.execute(query, params)
+        conn.commit()
+        return cursor.rowcount
+
+    except Exception as e:
+        print(f"Error executing update query: {e}")
+        return None
+
+    finally:
+        if conn.is_connected():
+            conn.close()
+
+def delete_query(query, params=None):
+    """
+    Exécute une requête DELETE dans la base de données.
+
+    Args:
+        query (str): La requête SQL à exécuter.
+        params (tuple, optional): Les paramètres pour la requête.
+
+    Returns:
+        int: Le nombre de lignes affectées par la requête.
+    """
+    return update_query(query, params)  # La logique pour DELETE est la même que pour UPDATE
+
+def insert_query(query, params=None):
+    """
+    Exécute une requête INSERT dans la base de données.
+
+    Args:
+        query (str): La requête SQL à exécuter.
+        params (tuple, optional): Les paramètres pour la requête.
+
+    Returns:
+        int: L'ID de la nouvelle ligne insérée.
+    """
+    conn = create_connection()
+    cursor = conn.cursor()
+    try:
+        params = params or ()
+        cursor.execute(query, params)
+        conn.commit()
+        return cursor.lastrowid
+
+    except Exception as e:
+        print(f"Error executing add query: {e}")
         return None
 
     finally:
@@ -74,7 +141,7 @@ def getAllQuestionData():
     questions_data= select_query('select * from Question ')
     return questions_data
 
-def getGoodResponseForQuestion(idQuestion):
+def getGoodResponseForQuestion(id_question):
     """
     Récupère la bonne réponse pour une question donnée.
 
@@ -84,7 +151,7 @@ def getGoodResponseForQuestion(idQuestion):
     Retour:
         list: Liste contenant le tuple de la bonne réponse.
     """
-    return select_query(f"select ID_Reponse from Reponse where Est_Correcte=true and ID_Question={idQuestion}")[0][0]
+    return select_query(f"select ID_Reponse from Reponse where Est_Correcte=true and ID_Question={id_question}")[0][0]
 
 def getAllTheme():
     """
@@ -133,10 +200,17 @@ def get_password_from_username(username):
         str: Mot de passe associé ou None si non trouvé.
     """
     query = f"SELECT password FROM user WHERE username='{username}'"
-    return select_query(query)
+    result = select_query(query)
+
+    # Check if the result is not empty and return the password
+    if result and len(result) > 0:
+        return result[0][0]
+    else:
+        return None
+
 
 def is_admin(username):
-    query=f'select admin from user where username=username'
+    query=f"select admin from user where username='{username}'"
 def is_user(username):
     """
     Vérifie si un utilisateur existe dans la base de données.
@@ -161,11 +235,111 @@ def get_all_usernames():
     query = "SELECT username FROM user"
     return select_query(query)
 
-def main():
-    print(select_query('select * from Question where ID_Question=3'))
-    reponses=getReponsesForQuestion(3)
-    print(reponses[0][0])
-main()
+def update_password(username, new_password):
+    """
+    Met à jour le mot de passe d'un utilisateur.
+
+    Args:
+        username (str): Le nom d'utilisateur.
+        new_password (str): Le nouveau mot de passe.
+
+    Returns:
+        int: Le nombre de lignes affectées par la mise à jour.
+    """
+    query = "UPDATE users SET password = %s WHERE username = %s"
+    params = (new_password, username)
+    return update_query(query, params)
+
+import bcrypt
+
+def insert_user(username, password, is_admin):
+    """
+    Insère un nouvel utilisateur dans la base de données.
+
+    Args:
+        username (str): Le nom d'utilisateur.
+        password (str): Le mot de passe en clair.
+        is_admin (bool): Si l'utilisateur est un administrateur.
+
+    Returns:
+        int: L'ID de la nouvelle ligne insérée ou None en cas d'erreur.
+    """
+    
+    # Hacher le mot de passe avec bcrypt
+    hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
+    
+    # Construire la requête SQL
+    query = """
+    INSERT INTO User (username, password, is_admin)
+    VALUES (%s, %s, %s)
+    """
+    
+    # Exécuter la requête avec les paramètres
+    return insert_query(query, (username, hashed_password.decode('utf-8'), int(is_admin)))
+
+
+def delete_user(username):
+    """
+    Supprime un utilisateur de la base de données.
+
+    Args:
+        username (str): Le nom d'utilisateur à supprimer.
+
+    Returns:
+        int: Le nombre de lignes affectées par la suppression.
+    """
+    query = "DELETE FROM users WHERE username = %s"
+    params = (username,)
+    return delete_query(query, params)
+
+def set_admin(username):
+    """
+    Attribue le rôle d'administrateur à un utilisateur.
+
+    Args:
+        username (str): Le nom d'utilisateur.
+
+    Returns:
+        int: Le nombre de lignes affectées par la mise à jour.
+    """
+    query = "UPDATE users SET admin = 1 WHERE username = %s"
+    params = (username,)
+    return update_query(query, params)
+
+def remove_admin(username):
+    """
+    Retire le rôle d'administrateur d'un utilisateur.
+
+    Args:
+        username (str): Le nom d'utilisateur.
+
+    Returns:
+        int: Le nombre de lignes affectées par la mise à jour.
+    """
+    query = "UPDATE users SET admin = 0 WHERE username = %s"
+    params = (username,)
+    return update_query(query, params)
+    
+def get_id_reponse_for_text(text_response):
+    """
+    Récupère l'ID de la réponse basé sur le texte de la réponse.
+
+    Args:
+        text_response (str): Texte de la réponse.
+
+    Returns:
+        int: ID de la réponse ou None si non trouvé.
+    """
+    query = f"SELECT ID_Reponse FROM Reponse WHERE Texte='{text_response}'"
+    result = select_query(query)  # Supposons que select_query est une fonction que vous avez définie pour exécuter des requêtes SELECT.
+    
+    if result:
+        return result[0][0]  # Retourne le premier élément du premier tuple.
+    return None
+
+
+
+
 
 
 
