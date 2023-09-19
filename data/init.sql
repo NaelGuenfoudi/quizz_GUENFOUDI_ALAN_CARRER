@@ -1,10 +1,10 @@
 -- Création de la table Joueur
-CREATE TABLE Joueur (
-    ID_Joueur INT PRIMARY KEY AUTO_INCREMENT,
-    Nom VARCHAR(255) NOT NULL,
-    Prenom VARCHAR(255),
-    Email VARCHAR(255) UNIQUE NOT NULL
-    -- d'autres champs si nécessaire
+CREATE TABLE User (
+    id_user INT PRIMARY KEY AUTO_INCREMENT,
+    username VARCHAR(255) NOT NULL,
+    password VARCHAR(255),
+    is_admin TINYINT(1)
+    
 );
 
 -- Création de la table Theme
@@ -34,22 +34,31 @@ CREATE TABLE Reponse (
 
 -- Création de la table Donne
 CREATE TABLE Donne (
-    ID_Joueur INT,
+    id_user
+ INT,
     ID_Question INT,
     ID_Reponse INT,
     Temps_Reponse INT NOT NULL, -- En secondes ou minutes
     Date_Reponse DATE NOT NULL,
-    PRIMARY KEY (ID_Joueur, ID_Question),
-    FOREIGN KEY (ID_Joueur) REFERENCES Joueur(ID_Joueur),
+    PRIMARY KEY (id_user
+, ID_Question),
+    FOREIGN KEY (id_user
+) REFERENCES User(id_user
+),
     FOREIGN KEY (ID_Question) REFERENCES Question(ID_Question),
     FOREIGN KEY (ID_Reponse) REFERENCES Reponse(ID_Reponse)
 );
 
 -- Création de la table Score
 CREATE TABLE Score (
-    ID_Joueur INT,
+    id_user
+ INT,
     Score_Total INT NOT NULL,
     Date_Score DATE NOT NULL,
-    PRIMARY KEY (ID_Joueur, Date_Score),
-    FOREIGN KEY (ID_Joueur) REFERENCES Joueur(ID_Joueur)
+    PRIMARY KEY (id_user
+, Date_Score),
+    FOREIGN KEY (id_user
+) REFERENCES User(id_user
+)
 );
+
