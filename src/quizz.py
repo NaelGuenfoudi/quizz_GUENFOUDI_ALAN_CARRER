@@ -9,6 +9,7 @@ import string
 import mysql.connector
 import bcrypt   
 from quizz import *
+from Game import *
 
 
 players = {}
@@ -34,14 +35,15 @@ def login(username):
         password_from_db=get_password_from_username(username)
     except Error as e:
         print(f"Une erreur est survenue: {e}")
-
-    while True:
+    is_good_password=False
+    while not is_good_password:
         password = maskpass.askpass(prompt="Veuillez entrer votre mot de passe: ", mask="")
         if len(password) < 1:
             print("\x1b[31mLa valeur du mot de passe ne peut pas être nulle.\x1b[0m")
         elif len(password) >= 255:
             print("\x1b[31mLe mot de passe ne peut pas dépasser 255 caractères.\x1b[0m")
         else:
+            is_good_password=True
             if bcrypt.checkpw(password.encode('utf-8'), password_from_db.encode('utf-8')):
                 print("\x1b[32mAuthentification réussie !\x1b[0m")
                 time.sleep(2)
@@ -81,7 +83,8 @@ def admin(username):
 
 def quizzGame():
     clear_screen()
-    while True:
+    is_good_username=False
+    while not is_good_username:
         username = input("Veuillez entrer votre nom d'utilisateur: ")
 
         if len(username) < 4:
@@ -89,6 +92,7 @@ def quizzGame():
         elif len(username) > 60:
             print("\x1b[31mLa valeur ne peut pas être plus grande que 60\x1b[0m")
         else:
+            is_good_username=True
             try:
                 
                 if is_user(username):
@@ -183,7 +187,11 @@ def start_game():
     print()
     print(center_text("Vous avez un délais de 5 seconde avant l'affichage de la première question", os_width))
     print(center_text("Vous pouvez quitter le quizz quand vous le souhaiter, mais votre action ne sera pas sans conséquence", os_width))
-    print()
+    time.sleep(5)
+    game = Game()
+    game.main()
+    score_of_game=game.score
+    print(f'Voici le score final:{score_of_game}')
     
 
 def multiplayer_start():
