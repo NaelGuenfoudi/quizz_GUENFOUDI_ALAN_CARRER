@@ -183,7 +183,7 @@ def getQuestionsOfTheme(idTheme, nbQuestion):
         list: Liste de tuples contenant l'ID et le texte des questions.
     """
     if(idTheme!=0):
-        query = f'select ID_Question, Texte from Question where ID_Theme={idTheme} ORDER BY RAND() limit {nbQuestion}'    
+        query = f'select ID_Question, Texte from Question where ID_Theme={idTheme}  ORDER BY RAND() limit {nbQuestion}'    
     else:
         query = f'select ID_Question, Texte from Question  ORDER BY RAND() limit {nbQuestion}'  
     
@@ -359,6 +359,10 @@ def get_id_reponse_for_text(text_response):
     if result:
         return result[0][0]  # Retourne le premier élément du premier tuple.
     return None
+
+def get_point_question(id_question):
+    query=f"SELECT Niveau_Complexite from Question where ID_Question={id_question}"
+    return int(select_query(query)[0][0])
 
 
 
