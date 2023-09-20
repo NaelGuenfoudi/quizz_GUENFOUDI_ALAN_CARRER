@@ -47,7 +47,7 @@ def login(username):
             if bcrypt.checkpw(password.encode('utf-8'), password_from_db.encode('utf-8')):
                 print("\x1b[32mAuthentification réussie !\x1b[0m")
                 time.sleep(2)
-                start_game()
+                start_game(username)
             else:
                 print("\x1b[31mMot de passe incorrect.\x1b[0m")
                 time.sleep(3)
@@ -129,7 +129,7 @@ def quizzGame():
             except Exception as e:
                 print(f"Une erreur s'est produite : {e}")
                 
-def start_game():
+def start_game(username):
     clear_screen()
     print("\x1b[31m──────────────────")
     clear_screen()
@@ -190,8 +190,8 @@ def start_game():
     time.sleep(5)
     game = Game()
     game.main()
-    score_of_game=game.score
-    print(f'Voici le score final:{score_of_game}')
+    add_new_score(username,game.score,game.global_time,game.theme)
+    
     
 
 def multiplayer_start():
@@ -230,7 +230,9 @@ def multiplayer():
     multiplayer_start()
 
 def highScore():
-    print(("High score"))
+    highscores=get_highscores(5)
+    for highscore in highscores:
+        print ()
 
 def menu_administrateur_goodpass():
     clear_screen()
