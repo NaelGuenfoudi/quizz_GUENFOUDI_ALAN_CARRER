@@ -1,6 +1,8 @@
 import mysql.connector
 from mysql.connector import Error
 from configparser import ConfigParser
+from datetime import date
+from datetime import datetime
 
 def read_db_config(filename='src/db/conf.ini', section='MySQL'):
         parser = ConfigParser()
@@ -363,6 +365,42 @@ def get_id_reponse_for_text(text_response):
 def get_point_question(id_question):
     query=f"SELECT Niveau_Complexite from Question where ID_Question={id_question}"
     return int(select_query(query)[0][0])
+
+def get_time_question(id_question):
+    query=f'select Temps_Imparti from Question where ID_Question={id_question}'
+    return int(select_query(query)[0][0])
+
+def get_id_user_from_username(username):
+    """
+    Récupère l'ID de l'utilisateur à partir de son nom d'utilisateur.
+    """
+    query = f"SELECT id_user FROM User WHERE username = '{username}'"
+    result = select_query(query)
+    if result:
+        return result[0][0]
+    else:
+        return None
+
+def add_new_score(username, score, global_time, id_theme):
+    """
+    Ajoute un nouveau score pour un utilisateur donné.
+    """
+    user_id = get_id_user_from_username(username)
+    if user_id is None:
+        print("Nom d'utilisateur non trouvé.")
+        return
+
+    
+    current_datetime = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    try:
+        query = f"INSERT INTO Score (id_user, Score_Total, temps_game, Date_Score, id_theme) VALUES ({user_id}, {score}, {global_time}, '{current_date}', {id_theme})"
+        insert_query(query)
+        print(f"Score ajouté pour {username}.")
+    except:
+        print(f"Erreur lors de l'ajout du score")
+def get_highscores(nb_scores):
+    query=f"select * from Score order by Score_Total limit {nb_scores}"
+    return select_query(query)
 
 
 

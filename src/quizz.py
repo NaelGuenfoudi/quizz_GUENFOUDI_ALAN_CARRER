@@ -31,27 +31,28 @@ def clear_screen():
         os.system('clear')  # Posix
 
 def login(username):
-    try:
-        password_from_db=get_password_from_username(username)
-    except Error as e:
-        print(f"Une erreur est survenue: {e}")
-    is_good_password=False
-    while not is_good_password:
-        password = maskpass.askpass(prompt="Veuillez entrer votre mot de passe: ", mask="")
-        if len(password) < 1:
-            print("\x1b[31mLa valeur du mot de passe ne peut pas être nulle.\x1b[0m")
-        elif len(password) >= 255:
-            print("\x1b[31mLe mot de passe ne peut pas dépasser 255 caractères.\x1b[0m")
-        else:
-            is_good_password=True
-            if bcrypt.checkpw(password.encode('utf-8'), password_from_db.encode('utf-8')):
-                print("\x1b[32mAuthentification réussie !\x1b[0m")
-                time.sleep(2)
-                start_game(username)
-            else:
-                print("\x1b[31mMot de passe incorrect.\x1b[0m")
-                time.sleep(3)
-                main()
+    # try:
+    #     password_from_db=get_password_from_username(username)
+    # except Error as e:
+    #     print(f"Une erreur est survenue: {e}")
+    # is_good_password=False
+    # while not is_good_password:
+    #     password = maskpass.askpass(prompt="Veuillez entrer votre mot de passe: ", mask="")
+    #     if len(password) < 1:
+    #         print("\x1b[31mLa valeur du mot de passe ne peut pas être nulle.\x1b[0m")
+    #     elif len(password) >= 255:
+    #         print("\x1b[31mLe mot de passe ne peut pas dépasser 255 caractères.\x1b[0m")
+    #     else:
+    #         is_good_password=True
+    #         if bcrypt.checkpw(password.encode('utf-8'), password_from_db.encode('utf-8')):
+    #             print("\x1b[32mAuthentification réussie !\x1b[0m")
+    #             time.sleep(2)
+    #             start_game(username)
+    #         else:
+    #             print("\x1b[31mMot de passe incorrect.\x1b[0m")
+    #             time.sleep(3)
+    #             main()
+    start_game('Nael2')
 
 def admin(username):
     try:
@@ -133,29 +134,24 @@ def start_game(username):
     clear_screen()
     print("\x1b[31m──────────────────")
     clear_screen()
-    time.sleep(0.5)
     print("\x1b[31m──────────────────")
     print("\x1b[31m──\x1b[0m▄▄\x1b[31m─────\x1b[0m▄\x1b[31m───\x1b[0m▄▄▄▄▄")
     clear_screen()
-    time.sleep(0.5)
     print("\x1b[31m──────────────────")
     print("\x1b[31m──\x1b[0m▄▄\x1b[31m─────\x1b[0m▄\x1b[31m───\x1b[0m▄▄▄▄▄")
     print("\x1b[0m▄▀\x1b[31m──\x1b[0m▀▄\x1b[31m──\x1b[0m█\x1b[31m─\x1b[0m█\x1b[31m──\x1b[0m█\x1b[31m───\x1b[0m█")
     clear_screen()
-    time.sleep(0.5)
     print("\x1b[31m──────────────────")
     print("\x1b[31m──\x1b[0m▄▄\x1b[31m─────\x1b[0m▄\x1b[31m───\x1b[0m▄▄▄▄▄")
     print("\x1b[0m▄▀\x1b[31m──\x1b[0m▀▄\x1b[31m──\x1b[0m█\x1b[31m─\x1b[0m█\x1b[31m──\x1b[0m█\x1b[31m───\x1b[0m█")
     print("\x1b[0m█\x1b[31m────\x1b[0m█\x1b[31m─\x1b[0m█\x1b[31m───\x1b[0m█\x1b[31m─\x1b[0m█\x1b[31m───\x1b[0m█")
     clear_screen()
-    time.sleep(0.5)
     print("\x1b[31m──────────────────")
     print("\x1b[31m──\x1b[0m▄▄\x1b[31m─────\x1b[0m▄\x1b[31m───\x1b[0m▄▄▄▄▄")
     print("\x1b[0m▄▀\x1b[31m──\x1b[0m▀▄\x1b[31m──\x1b[0m█\x1b[31m─\x1b[0m█\x1b[31m──\x1b[0m█\x1b[31m───\x1b[0m█")
     print("\x1b[0m█\x1b[31m────\x1b[0m█\x1b[31m─\x1b[0m█\x1b[31m───\x1b[0m█\x1b[31m─\x1b[0m█\x1b[31m───\x1b[0m█")
     print("\x1b[31m─\x1b[0m▀▄▄▀\x1b[31m─\x1b[0m▐▄▄▄▄▄▌█▄▄▄█")
     clear_screen()
-    time.sleep(0.5)
     print("\x1b[31m──────────────────")
     print("\x1b[31m──\x1b[0m▄▄\x1b[31m─────\x1b[0m▄\x1b[31m───\x1b[0m▄▄▄▄▄")
     print("\x1b[0m▄▀\x1b[31m──\x1b[0m▀▄\x1b[31m──\x1b[0m█\x1b[31m─\x1b[0m█\x1b[31m──\x1b[0m█\x1b[31m───\x1b[0m█")
@@ -187,10 +183,15 @@ def start_game(username):
     print()
     print(center_text("Vous avez un délais de 5 seconde avant l'affichage de la première question", os_width))
     print(center_text("Vous pouvez quitter le quizz quand vous le souhaiter, mais votre action ne sera pas sans conséquence", os_width))
-    time.sleep(5)
-    game = Game()
-    game.main()
-    add_new_score(username,game.score,game.global_time,game.theme)
+    # time.sleep(5)
+    veut_rejouer = True
+    while veut_rejouer :
+        print('boucle while')
+        game = Game()
+        game.main()
+        add_new_score(username,game.score,game.global_time,game.theme)
+        veut_rejouer=int(input("Merci d'avoir joué cette partie, tu veux rejouer? 0 pour non,1 pour oui"))
+    main()
     
     
 
