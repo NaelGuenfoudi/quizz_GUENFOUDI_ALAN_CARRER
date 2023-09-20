@@ -51,16 +51,15 @@ CREATE TABLE Donne (
 
 -- Création de la table Score
 CREATE TABLE Score (
-    id_user
- INT,
+    id_user INT,
     Score_Total INT NOT NULL,
+    temps_game INT NOT NULL,
     Date_Score DATE NOT NULL,
-    PRIMARY KEY (id_user
-, Date_Score),
-    FOREIGN KEY (id_user
-) REFERENCES User(id_user
-)
+    id_theme INT,
+    PRIMARY KEY (id_user, Date_Score),
+    FOREIGN KEY (id_theme) REFERENCES Theme(ID_Theme)
 );
+
 
 
 
