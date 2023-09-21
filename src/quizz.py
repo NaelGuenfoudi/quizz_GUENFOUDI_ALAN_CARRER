@@ -52,7 +52,7 @@ def login(username):
     #             print("\x1b[31mMot de passe incorrect.\x1b[0m")
     #             time.sleep(3)
     #             main()
-    start_game('Nael2')
+    start_game(username)
 
 def admin(username):
     try:
@@ -126,7 +126,7 @@ def quizzGame():
                             break
 
                     insert_user(username,password_validation,0)
-                    break
+                    start_game(username)
             except Exception as e:
                 print(f"Une erreur s'est produite : {e}")
                 
@@ -231,9 +231,18 @@ def multiplayer():
     multiplayer_start()
 
 def highScore():
-    highscores=get_highscores(5)
+    highscores = get_highscores(5)
+    print('Voici le classement des 5 premiers joueurs:')
     for highscore in highscores:
-        print ()
+        # Supposons que l'ordre des colonnes dans le tuple est id_user, Score_Total, temps_game, Date_Score, id_theme
+        print(f"Nom: {get_username(highscore[0])}, "  # id_user
+              f"Score: {highscore[1]}, "  # Score_Total
+              f"Temps: {highscore[2]}s, "  # temps_game
+              f"Date: {highscore[3]}")  # Date_Score
+    input('Pour quitter: ENTER')
+    main()
+
+
 
 def menu_administrateur_goodpass():
     clear_screen()

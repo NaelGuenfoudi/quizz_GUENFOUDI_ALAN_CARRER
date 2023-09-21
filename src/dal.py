@@ -398,9 +398,14 @@ def add_new_score(username, score, global_time, id_theme):
         print(f"Score ajouté pour {username}.")
     except:
         print(f"Erreur lors de l'ajout du score")
+
 def get_highscores(nb_scores):
     query=f"select * from Score order by Score_Total limit {nb_scores}"
     return select_query(query)
+
+def get_username(id_user):
+    query=f"select username from User where id_user={id_user}"
+    return select_query(query)[0][0]
 
 
 
