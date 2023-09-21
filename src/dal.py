@@ -393,7 +393,7 @@ def add_new_score(username, score, global_time, id_theme):
     
     current_datetime = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     try:
-        query = f"INSERT INTO Score (id_user, Score_Total, temps_game, Date_Score, id_theme) VALUES ({user_id}, {score}, {global_time}, '{current_date}', {id_theme})"
+        query = f"INSERT INTO Score (id_user, Score_Total, temps_game, Date_Score, id_theme) VALUES ({user_id}, {score}, {global_time}, '{current_datetime}', {id_theme})"
         insert_query(query)
         print(f"Score ajouté pour {username}.")
     except:
